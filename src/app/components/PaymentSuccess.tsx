@@ -49,6 +49,13 @@ const PaymentSuccess: React.FC<PaymentSuccessProps> = ({ generalData }) => {
         return;
       }
 
+      // Extract project name from site_url
+      const rawSiteUrl = general?.site_url || "";
+      const projectName = rawSiteUrl
+        .replace(/^https?:\/\//, "")
+        .replace(".com", "")
+        .trim();
+
       // If payment was marked success
       if (status === "success" && orderID && other_info) {
         try {
@@ -59,6 +66,7 @@ const PaymentSuccess: React.FC<PaymentSuccessProps> = ({ generalData }) => {
             },
             body: JSON.stringify({
               payment_ref_id: orderID,
+              projectName,
               web_token,
               payment_method: "PayPal",
               status: "success",
@@ -67,6 +75,11 @@ const PaymentSuccess: React.FC<PaymentSuccessProps> = ({ generalData }) => {
               discount_amt: otherInfoObject.discount_amt || 0,
             }),
           });
+
+          console.log(
+            'Payment Confirm',
+            new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })
+          );
 
           const result = await response.json();
 
@@ -82,32 +95,10 @@ const PaymentSuccess: React.FC<PaymentSuccessProps> = ({ generalData }) => {
       }
 
       // If orderID is missing or processing failed, check actual status
-      // try {
-      //   const paymentCheckData = {
-      //     module_name: "payment_check",
-      //     keys: { data: [{ web_token }] },
-      //     cid: process.env.NEXT_PUBLIC_CID,
-      //   };
 
-      //   const response = await axios.post(process.env.NEXT_PUBLIC_API_URL || "",
-      //     paymentCheckData
-      //   );
-      //   const resData = response.data;
-
-      //   if (resData.status === 200 && resData.data) {
-      //     setPaymentStatus("success");
-      //   } else {
-      //     setPaymentStatus("not_done");
-      //   }
-      // } catch (error) {
-      //   console.error("Payment check failed:", error);
-      //   setPaymentStatus("error");
-      // } finally {
-      //   setLoading(false);
-      // }
 
       try {
-        const res = await axios.post("/api/payment-check", { web_token });
+        const res = await axios.post("/api/payment-check", { projectName, web_token });
         const resData = res.data;
 
         if (resData.status === 200 && resData.data) {
@@ -115,6 +106,12 @@ const PaymentSuccess: React.FC<PaymentSuccessProps> = ({ generalData }) => {
         } else {
           setPaymentStatus("not_done");
         }
+
+        console.log(
+          'Payment check',
+          new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })
+        );
+
       } catch (error) {
         console.error("Client: Payment check failed", error);
         setPaymentStatus("error");

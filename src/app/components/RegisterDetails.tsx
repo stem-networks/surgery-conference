@@ -52,6 +52,8 @@ interface GeneralInfo {
   csname?: string;
   year?: string;
   clname?: string;
+  site_url?: string;
+  cid?: string;
 }
 interface RegisterDetailsClientProps {
   generalInfo: GeneralInfo; // Replace `any` with the correct type if available
@@ -100,70 +102,6 @@ const RegisterDetails = ({ generalInfo }: RegisterDetailsClientProps) => {
     }
   }, [searchParams]);
 
-  // const CancelModal: React.FC = () => {
-  //   return (
-  //     <div className="modal-backdrop">
-  //       <div className="modal">
-  //         <p>You clicked cancel. Do you want to try again?</p>
-  //         <div className="modal-footer">
-  //           <button onClick={() => setShowCancelModal(false)} className="btn">
-  //             OK
-  //           </button>
-  //         </div>
-  //       </div>
-  //       <style jsx>{`
-  //         .modal-backdrop {
-  //           position: fixed;
-  //           top: 0;
-  //           left: 0;
-  //           width: 100vw;
-  //           height: 100vh;
-  //           background: rgba(0, 0, 0, 0.5);
-  //           display: flex;
-  //           align-items: center;
-  //           justify-content: center;
-  //           z-index: 1000;
-  //         }
-  //         .modal {
-  //           background: white;
-  //           padding: 30px;
-  //           border-radius: 10px;
-  //           box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-  //           width: 400px;
-  //           height: 200px;
-  //           max-width: 90%;
-  //           display: flex;
-  //           flex-direction: column;
-  //         }
-  //         .modal p {
-  //           margin-bottom: 5px;
-  //           line-height: 28px;
-  //           font-size: 18px;
-  //           text-align: center;
-  //         }
-  //         .modal-backdrop .modal-footer {
-  //           width: 100%;
-  //         }
-  //         .btn {
-  //           padding: 10px 20px;
-  //           font-size: 16px;
-  //           background: var(--primary-color);
-  //           color: #fff;
-  //           border-radius: 4px;
-  //           text-decoration: none;
-  //           transition: all 0.4s;
-  //           line-height: normal;
-  //           border: none;
-  //           transition: background-color 0.2s ease;
-  //           width: 100%;
-  //         }
-  //         .btn:hover {
-  //           background: var(--primary-color);
-  //         }
-  //       `}</style>
-  //     </div>
-  //   );
-  // };
 
   // useEffect(() => {
   //   const fetchDetails = async () => {
@@ -175,16 +113,20 @@ const RegisterDetails = ({ generalInfo }: RegisterDetailsClientProps) => {
   //         web_token,
   //       });
 
-  //       setTimeout(() => {
-  //         if (response.status === 200 && response.data) {
-  //           if (response.data.data?.transaction_id !== null) {
-  //             router.push(`/payment_success?web_token=${web_token}`);
-  //           }
-  //           setDetails(response.data.data);
-  //         } else {
-  //           setDetails(null);
+  //       if (response.status === 200 && response.data) {
+  //         const data = response.data.data;
+  //         setDetails(data);
+
+  //         // Prevent double redirect if already on payment_success page
+  //         if (
+  //           data?.transaction_id !== null &&
+  //           !window.location.pathname.includes("payment_success")
+  //         ) {
+  //           router.replace(`/payment_success?web_token=${web_token}`);
   //         }
-  //       }, 1000);
+  //       } else {
+  //         setDetails(null);
+  //       }
   //     } catch (error) {
   //       console.error("Client error:", error);
   //       setDetails(null);
@@ -194,13 +136,63 @@ const RegisterDetails = ({ generalInfo }: RegisterDetailsClientProps) => {
   //   fetchDetails();
   // }, [searchParams, router]);
 
+  // useEffect(() => {
+  //   const fetchDetails = async () => {
+  //     const web_token = searchParams?.get("web_token");
+  //     if (!web_token) return;
+
+  //     // Extract project name from site_url
+  //     const rawSiteUrl = generalInfo?.site_url || "";
+  //     const projectName = rawSiteUrl
+  //       .replace(/^https?:\/\//, "")
+  //       .replace(".com", "")
+  //       .trim();
+
+  //     try {
+  //       const response = await axios.post("/api/get-registration-details", {
+  //         projectName, // Added
+  //         web_token,
+  //       });
+
+  //       if (response.status === 200 && response.data) {
+  //         const data = response.data.data;
+  //         setDetails(data);
+
+  //         // Prevent double redirect if already on payment_success page
+  //         if (
+  //           data?.transaction_id !== null &&
+  //           !window.location.pathname.includes("payment_success")
+  //         ) {
+  //           router.replace(`/payment_success?web_token=${web_token}`);
+  //         }
+  //       } else {
+  //         setDetails(null);
+  //       }
+  //     } catch (error) {
+  //       console.error("Client error:", error);
+  //       setDetails(null);
+  //     }
+  //   };
+
+  //   fetchDetails();
+  // }, [searchParams, router, generalInfo]);
+
+
   useEffect(() => {
     const fetchDetails = async () => {
       const web_token = searchParams?.get("web_token");
       if (!web_token) return;
 
+      // Extract project name from site_url
+      const rawSiteUrl = generalInfo?.site_url || "";
+      const projectName = rawSiteUrl
+        .replace(/^https?:\/\//, "")
+        .replace(".com", "")
+        .trim();
+
       try {
-        const response = await axios.post("/api/registration-details", {
+        const response = await axios.post("/api/get-registration-details", {
+          projectName, // Added
           web_token,
         });
 
@@ -225,7 +217,7 @@ const RegisterDetails = ({ generalInfo }: RegisterDetailsClientProps) => {
     };
 
     fetchDetails();
-  }, [searchParams, router]);
+  }, [searchParams, router, generalInfo]);
 
   const dataToShow = details;
 
@@ -454,7 +446,7 @@ const RegisterDetails = ({ generalInfo }: RegisterDetailsClientProps) => {
     } catch (err) {
       setLocalError("Error applying coupon: " + (err as Error).message);
       console.error("Error applying coupon:", err);
-      
+
     }
   };
 
@@ -502,39 +494,6 @@ const RegisterDetails = ({ generalInfo }: RegisterDetailsClientProps) => {
     totalRegistrationPrice,
     totalAccommodationPrice,
   ]);
-
-  // async function sendErrorToCMS({
-  //   name,
-  //   email,
-  //   errorMessage,
-  //   formBased = "PayPal Payment",
-  // }: {
-  //   name: string;
-  //   email: string;
-  //   errorMessage: string;
-  //   formBased?: string;
-  // }) {
-  //   try {
-  //     const payload = new FormData();
-  //     payload.append("name", name);
-  //     payload.append("email", email);
-  //     payload.append("error_message", errorMessage);
-  //     payload.append("form_based", formBased);
-
-  //     const res = await fetch("/api/send-to-telegram", {
-  //       method: "POST",
-  //       body: payload,
-  //     });
-
-  //     if (!res.ok) {
-  //       console.error("Failed to send error to CMS");
-  //     }
-  //   } catch (err) {
-  //     console.error("Error sending to CMS:", err);
-  //   }
-  // }
-
-
 
   // sendError to Telegram 
   async function sendErrorToCMS({
@@ -740,8 +699,7 @@ const RegisterDetails = ({ generalInfo }: RegisterDetailsClientProps) => {
                           No of Accompanying Persons ($
                           {(dataToShow?.accompanying ?? 0) > 0
                             ? `${Math.round(
-                              (dataToShow?.accompanying_price ?? 0) /
-                              (dataToShow?.accompanying ?? 1)
+                              (dataToShow?.accompanying_price ?? 0)
                             )}`
                             : "N/A"}{" "}
                           each Person):
@@ -758,7 +716,7 @@ const RegisterDetails = ({ generalInfo }: RegisterDetailsClientProps) => {
                           Total Accompanying Persons Price:
                         </td>
                         <td className="re_p3_main text-right fw-600">
-                          ${dataToShow?.accompanying_price}
+                          ${(dataToShow?.accompanying_price ?? 0) * (dataToShow?.accompanying ?? 0)}
                         </td>
                       </tr>
                     )}
@@ -931,16 +889,76 @@ const RegisterDetails = ({ generalInfo }: RegisterDetailsClientProps) => {
                       }
                     }}
 
-                    onApprove={async (data) => {
-                      // console.log("🟣 [PayPal] onApprove Triggered");
-                      // console.log("🧾 Approval Data:", data);
+                    // onApprove={async (data) => {
+                    //   try {
+                    //     const capturePayload = { orderID: data.orderID };
 
+
+                    //     const res = await fetch("/api/paypal/capture-order", {
+                    //       method: "POST",
+                    //       headers: {
+                    //         "Content-Type": "application/json",
+                    //       },
+                    //       body: JSON.stringify(capturePayload),
+                    //     });
+
+                    //     const captureData = await res.json();
+
+                    //     if (!res.ok) throw new Error("Failed to capture order");
+
+                    //     const savePaymentPayload = {
+                    //       payment_ref_id: captureData.id,
+                    //       web_token: dataToShow?.web_token,
+                    //       total_price: adjustedPriceRef.current,
+                    //       other_info: actualAmountRef.current,
+                    //       payment_method: "PayPal",
+                    //       status: "success",
+                    //       discount_amt: 0,
+                    //     };
+
+                    //     const saveRes = await fetch(
+                    //       "/api/paypal/save-payment",
+                    //       {
+                    //         method: "POST",
+                    //         headers: {
+                    //           "Content-Type": "application/json",
+                    //         },
+                    //         body: JSON.stringify(savePaymentPayload),
+                    //       }
+                    //     );
+
+                    //     const saveResult = await saveRes.json();
+                    //     console.log("✅ save-payment Response:", saveResult);
+
+                    //     const encryptedData = btoa(
+                    //       JSON.stringify(savePaymentPayload)
+                    //     );
+                    //     const query = new URLSearchParams({
+                    //       status: "success",
+                    //       web_token: dataToShow?.web_token || "",
+                    //       orderID: data.orderID || "",
+                    //       other_info: encryptedData || "",
+                    //     }).toString();
+
+                    //     router.push(`/payment_success?${query}`);
+                    //   } catch (error) {
+                    //     console.error("❌ Error in onApprove:", error);
+                    //     await sendErrorToCMS({
+                    //       name: dataToShow?.name || "Unknown User",
+                    //       email: dataToShow?.email || "Unknown Email",
+                    //       errorMessage: `Something went wrong while approving the PayPal transaction (capture/save step): ${(error as Error).message || "Unknown error in onApprove"}`,
+                    //     });
+                    //     router.push(
+                    //       `/register_details?status=failure&web_token=${dataToShow?.web_token}`
+                    //     );
+                    //   } finally {
+                    //     setIsPending(false);
+                    //   }
+                    // }}
+
+                    onApprove={async (data) => {
                       try {
                         const capturePayload = { orderID: data.orderID };
-                        // console.log(
-                        //   "📤 Sending to /api/paypal/capture-order:",
-                        //   capturePayload
-                        // );
 
                         const res = await fetch("/api/paypal/capture-order", {
                           method: "POST",
@@ -951,8 +969,6 @@ const RegisterDetails = ({ generalInfo }: RegisterDetailsClientProps) => {
                         });
 
                         const captureData = await res.json();
-                        // console.log("✅ capture-order Response:", captureData);
-
                         if (!res.ok) throw new Error("Failed to capture order");
 
                         const savePaymentPayload = {
@@ -965,28 +981,45 @@ const RegisterDetails = ({ generalInfo }: RegisterDetailsClientProps) => {
                           discount_amt: 0,
                         };
 
-                        // console.log(
-                        //   "📤 Sending to /api/paypal/save-payment:",
-                        //   savePaymentPayload
-                        // );
-
-                        const saveRes = await fetch(
-                          "/api/paypal/save-payment",
-                          {
-                            method: "POST",
-                            headers: {
-                              "Content-Type": "application/json",
-                            },
-                            body: JSON.stringify(savePaymentPayload),
-                          }
-                        );
+                        // 1️⃣ Keep existing CMS save-payment call
+                        const saveRes = await fetch("/api/paypal/save-payment", {
+                          method: "POST",
+                          headers: {
+                            "Content-Type": "application/json",
+                          },
+                          body: JSON.stringify(savePaymentPayload),
+                        });
 
                         const saveResult = await saveRes.json();
                         console.log("✅ save-payment Response:", saveResult);
 
-                        const encryptedData = btoa(
-                          JSON.stringify(savePaymentPayload)
-                        );
+                        // 2️⃣ Also save to /api/save-payment-user (Blob storage)
+                        const paymentUserPayload = {
+                          transaction_id: captureData.id,
+                          payment_method: "PayPal",
+                          paymentstatus: "success",
+                          total_price: adjustedPriceRef.current,
+                          discount_amt: "0",
+                          other_info: actualAmountRef.current,
+                          status: "1",
+                          created_dt: new Date().toISOString(),
+                          updated_dt: new Date().toISOString(),
+                          web_token: dataToShow?.web_token,
+                          cid: generalInfo?.cid,
+                          site_url: generalInfo?.site_url || "",
+                          attempt: "1",
+                        };
+
+                        await fetch("/api/save-payment-user", {
+                          method: "POST",
+                          headers: {
+                            "Content-Type": "application/json",
+                          },
+                          body: JSON.stringify(paymentUserPayload),
+                        });
+
+                        // 3️⃣ Redirect to success page
+                        const encryptedData = btoa(JSON.stringify(savePaymentPayload));
                         const query = new URLSearchParams({
                           status: "success",
                           web_token: dataToShow?.web_token || "",
@@ -1000,7 +1033,8 @@ const RegisterDetails = ({ generalInfo }: RegisterDetailsClientProps) => {
                         await sendErrorToCMS({
                           name: dataToShow?.name || "Unknown User",
                           email: dataToShow?.email || "Unknown Email",
-                          errorMessage: `Something went wrong while approving the PayPal transaction (capture/save step): ${(error as Error).message || "Unknown error in onApprove"}`,
+                          errorMessage: `Something went wrong while approving the PayPal transaction (capture/save step): ${(error as Error).message || "Unknown error in onApprove"
+                            }`,
                         });
                         router.push(
                           `/register_details?status=failure&web_token=${dataToShow?.web_token}`
@@ -1009,6 +1043,7 @@ const RegisterDetails = ({ generalInfo }: RegisterDetailsClientProps) => {
                         setIsPending(false);
                       }
                     }}
+
 
                     onCancel={async (data) => {
                       console.warn("🟠 [PayPal] onCancel Triggered");
