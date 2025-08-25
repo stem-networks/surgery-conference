@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
-import axios from "axios";
 import { ApiResponse } from "@/types";
 
 interface PaymentSuccessProps {
@@ -57,7 +56,7 @@ const PaymentSuccess: React.FC<PaymentSuccessProps> = ({ generalData }) => {
         .trim();
 
       // If payment was marked success
-      if (status === "success" && orderID && other_info) {
+      if (status === "success") {
         try {
           const response = await fetch("/api/payment/confirm", {
             method: "POST",
@@ -65,23 +64,18 @@ const PaymentSuccess: React.FC<PaymentSuccessProps> = ({ generalData }) => {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              payment_ref_id: orderID,
               projectName,
               web_token,
-              payment_method: "PayPal",
-              status: "success",
-              total_price: otherInfoObject.total_price || "N/A",
-              other_info: otherInfoObject.other_info || "N/A",
-              discount_amt: otherInfoObject.discount_amt || 0,
             }),
           });
 
           console.log(
-            'Payment Confirm',
-            new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })
+            "Payment Confirm",
+            new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })
           );
 
           const result = await response.json();
+          console.log("payment results after fetching 111", result);
 
           if (result.success) {
             // Directly show final success content (do not redirect)
@@ -92,29 +86,6 @@ const PaymentSuccess: React.FC<PaymentSuccessProps> = ({ generalData }) => {
         } catch (error) {
           console.error("Payment processing error:", error);
         }
-      }
-
-      // If orderID is missing or processing failed, check actual status
-
-
-      try {
-        const res = await axios.post("/api/payment-check", { projectName, web_token });
-        const resData = res.data;
-
-        if (resData.status === 200 && resData.data) {
-          setPaymentStatus("success");
-        } else {
-          setPaymentStatus("not_done");
-        }
-
-        console.log(
-          'Payment check',
-          new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })
-        );
-
-      } catch (error) {
-        console.error("Client: Payment check failed", error);
-        setPaymentStatus("error");
       }
     };
 
