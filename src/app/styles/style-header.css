@@ -9686,3 +9686,12 @@ input[text]:focus {
 		height: 50px !important;
 	}
 }
+
+/* Payment Failuire Button  */
+.tryButton {
+	background-color: var(--primary-color);
+}
+
+.tryButton:hover {
+	background-color: var(--secondary-color);
+}
