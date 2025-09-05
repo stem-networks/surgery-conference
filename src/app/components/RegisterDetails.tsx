@@ -121,11 +121,31 @@ const RegisterDetails = ({ generalInfo }: RegisterDetailsClientProps) => {
       }
 
       // Extract project name from site_url
-      const rawSiteUrl = generalInfo?.site_url || "";
-      const projectName = rawSiteUrl
-        .replace(/^https?:\/\//, "")
-        .replace(".com", "")
-        .trim();
+      // const rawSiteUrl = generalInfo?.site_url || "";
+      // const projectName = rawSiteUrl
+      //   .replace(/^https?:\/\//, "")
+      //   .replace(".com", "")
+      //   .trim();
+
+      const siteUrl = generalInfo.site_url || "";
+      let projectName = "default_project";
+
+      if (siteUrl) {
+        try {
+          const { hostname } = new URL(siteUrl);
+          const parts = hostname.split(".");
+
+          if (parts.length > 2) {
+            // Has subdomain → take only the first part
+            projectName = parts[0];
+          } else {
+            // No subdomain → take the domain name without TLD
+            projectName = parts[0];
+          }
+        } catch (e) {
+          console.error("Invalid siteUrl:", siteUrl, e);
+        }
+      }
 
       try {
         // Step 1: Check payment confirmation
@@ -182,40 +202,64 @@ const RegisterDetails = ({ generalInfo }: RegisterDetailsClientProps) => {
       (dataToShow?.reg_price || 0) * (dataToShow?.participants || 0);
   }
 
-  const convertToDDMMYYYY = (dateStr: string) => {
-    const [year, month, day] = dateStr.split("-");
-    return `${day}-${month}-${year}`;
-  };
+  // const convertToDDMMYYYY = (dateStr: string) => {
+  //   const [year, month, day] = dateStr.split("-");
+  //   return `${day}-${month}-${year}`;
+  // };
+
+  // const formatDateWithDay = (dateStr: string) => {
+  //   if (dateStr === "NA") return "NA";
+
+  //   const [day, month, year] = dateStr.split("-");
+  //   const dateObj = new Date(`${year}-${month}-${day}`);
+
+  //   const daysOfWeek = [
+  //     "Sunday",
+  //     "Monday",
+  //     "Tuesday",
+  //     "Wednesday",
+  //     "Thursday",
+  //     "Friday",
+  //     "Saturday",
+  //   ];
+  //   const months = [
+  //     "Jan",
+  //     "Feb",
+  //     "Mar",
+  //     "Apr",
+  //     "May",
+  //     "Jun",
+  //     "Jul",
+  //     "Aug",
+  //     "Sep",
+  //     "Oct",
+  //     "Nov",
+  //     "Dec",
+  //   ];
+
+  //   const dayName = daysOfWeek[dateObj.getUTCDay()];
+  //   const monthName = months[parseInt(month) - 1];
+  //   const formattedDay = day.padStart(2, "0");
+
+  //   return `${monthName} ${formattedDay}, ${year} (${dayName})`;
+  // };
+
 
   const formatDateWithDay = (dateStr: string) => {
-    if (dateStr === "NA") return "NA";
+    if (!dateStr || dateStr === "NA") return "NA";
 
+    // Expecting DD-MM-YYYY
     const [day, month, year] = dateStr.split("-");
-    const dateObj = new Date(`${year}-${month}-${day}`);
+
+    const dateObj = new Date(`${year}-${month}-${day}`); // YYYY-MM-DD (valid)
+
+    if (isNaN(dateObj.getTime())) return "Invalid Date";
 
     const daysOfWeek = [
-      "Sunday",
-      "Monday",
-      "Tuesday",
-      "Wednesday",
-      "Thursday",
-      "Friday",
-      "Saturday",
+      "Sunday", "Monday", "Tuesday", "Wednesday",
+      "Thursday", "Friday", "Saturday",
     ];
-    const months = [
-      "Jan",
-      "Feb",
-      "Mar",
-      "Apr",
-      "May",
-      "Jun",
-      "Jul",
-      "Aug",
-      "Sep",
-      "Oct",
-      "Nov",
-      "Dec",
-    ];
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
     const dayName = daysOfWeek[dateObj.getUTCDay()];
     const monthName = months[parseInt(month) - 1];
@@ -223,6 +267,7 @@ const RegisterDetails = ({ generalInfo }: RegisterDetailsClientProps) => {
 
     return `${monthName} ${formattedDay}, ${year} (${dayName})`;
   };
+
 
   useEffect(() => {
     if (dataToShow?.email) {
@@ -674,7 +719,7 @@ const RegisterDetails = ({ generalInfo }: RegisterDetailsClientProps) => {
                               <td className="re_p3">Check-in Date:</td>
                               <td className="re_p3 text-right fw-600">
                                 {formatDateWithDay(
-                                  convertToDDMMYYYY(dataToShow.checkin_date)
+                                  dataToShow.checkin_date
                                 )}
                               </td>
                             </tr>
@@ -685,9 +730,7 @@ const RegisterDetails = ({ generalInfo }: RegisterDetailsClientProps) => {
                             <tr>
                               <td className="re_p3 brb-none">Check-out Date:</td>
                               <td className="re_p3 brb-none text-right fw-600">
-                                {formatDateWithDay(
-                                  convertToDDMMYYYY(dataToShow.checkout_date)
-                                )}
+                                {formatDateWithDay(dataToShow.checkout_date)}
                               </td>
                             </tr>
                           )}
@@ -862,6 +905,7 @@ const RegisterDetails = ({ generalInfo }: RegisterDetailsClientProps) => {
                           // console.log("🔵 [PayPal] onClick Triggered");
                           console.log("🟡 Click Payload:", { data, actions });
                         }}
+
                         createOrder={async () => {
                           // console.log("🟢 [PayPal] createOrder Triggered");
                           setIsPending(true);
@@ -905,71 +949,6 @@ const RegisterDetails = ({ generalInfo }: RegisterDetailsClientProps) => {
                             setIsPending(false);
                           }
                         }}
-                        // onApprove={async (data) => {
-                        //   try {
-                        //     const capturePayload = { orderID: data.orderID };
-
-                        //     const res = await fetch("/api/paypal/capture-order", {
-                        //       method: "POST",
-                        //       headers: {
-                        //         "Content-Type": "application/json",
-                        //       },
-                        //       body: JSON.stringify(capturePayload),
-                        //     });
-
-                        //     const captureData = await res.json();
-
-                        //     if (!res.ok) throw new Error("Failed to capture order");
-
-                        //     const savePaymentPayload = {
-                        //       payment_ref_id: captureData.id,
-                        //       web_token: dataToShow?.web_token,
-                        //       total_price: adjustedPriceRef.current,
-                        //       other_info: actualAmountRef.current,
-                        //       payment_method: "PayPal",
-                        //       status: "success",
-                        //       discount_amt: 0,
-                        //     };
-
-                        //     const saveRes = await fetch(
-                        //       "/api/paypal/save-payment",
-                        //       {
-                        //         method: "POST",
-                        //         headers: {
-                        //           "Content-Type": "application/json",
-                        //         },
-                        //         body: JSON.stringify(savePaymentPayload),
-                        //       }
-                        //     );
-
-                        //     const saveResult = await saveRes.json();
-                        //     console.log("✅ save-payment Response:", saveResult);
-
-                        //     const encryptedData = btoa(
-                        //       JSON.stringify(savePaymentPayload)
-                        //     );
-                        //     const query = new URLSearchParams({
-                        //       status: "success",
-                        //       web_token: dataToShow?.web_token || "",
-                        //       orderID: data.orderID || "",
-                        //       other_info: encryptedData || "",
-                        //     }).toString();
-
-                        //     router.push(`/payment_success?${query}`);
-                        //   } catch (error) {
-                        //     console.error("❌ Error in onApprove:", error);
-                        //     await sendErrorToCMS({
-                        //       name: dataToShow?.name || "Unknown User",
-                        //       email: dataToShow?.email || "Unknown Email",
-                        //       errorMessage: `Something went wrong while approving the PayPal transaction (capture/save step): ${(error as Error).message || "Unknown error in onApprove"}`,
-                        //     });
-                        //     router.push(
-                        //       `/register_details?status=failure&web_token=${dataToShow?.web_token}`
-                        //     );
-                        //   } finally {
-                        //     setIsPending(false);
-                        //   }
-                        // }}
 
                         onApprove={async (data) => {
                           try {
@@ -1028,13 +1007,17 @@ const RegisterDetails = ({ generalInfo }: RegisterDetailsClientProps) => {
                               attempt: "1",
                             };
 
-                            await fetch("/api/save-payment-user", {
+                            // ✅ Ensure blob is saved successfully
+                            const blobRes = await fetch("/api/save-payment-user", {
                               method: "POST",
-                              headers: {
-                                "Content-Type": "application/json",
-                              },
+                              headers: { "Content-Type": "application/json" },
                               body: JSON.stringify(paymentUserPayload),
                             });
+
+                            const blobResult = await blobRes.json();
+                            if (!blobRes.ok || !blobResult.success) {
+                              throw new Error("Failed to save payment in blob storage");
+                            }
 
                             // 3️⃣ Redirect to success page
                             const encryptedData = btoa(
@@ -1069,6 +1052,7 @@ const RegisterDetails = ({ generalInfo }: RegisterDetailsClientProps) => {
                             setIsPending(false);
                           }
                         }}
+
                         onCancel={async (data) => {
                           console.warn("🟠 [PayPal] onCancel Triggered");
                           // console.log("❗ Cancel Payload:", data);
@@ -1085,6 +1069,7 @@ const RegisterDetails = ({ generalInfo }: RegisterDetailsClientProps) => {
 
                           setShowCancelModal(true);
                         }}
+
                         onError={async (err) => {
                           console.error("🔴 [PayPal] onError Triggered");
                           console.error("💥 Error Payload:", err);

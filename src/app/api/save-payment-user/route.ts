@@ -6,13 +6,23 @@ export async function POST(req: NextRequest) {
     try {
         const incoming = await req.json();
 
-        const defaultValue = (
-            val: string | number | null | undefined,
-            fallback = "wmty"
-        ): string | number => {
-            return val === undefined || val === null || val === ""
-                ? fallback
-                : val;
+        // const defaultValue = (
+        //     val: string | number | null | undefined,
+        //     fallback = "wmty"
+        // ): string | number => {
+        //     return val === undefined || val === null || val === ""
+        //         ? fallback
+        //         : val;
+        // };
+
+        const defaultValue = <T extends string | number>(
+            val: T | null | undefined,
+            fallback?: T
+        ): T | null => {
+            if (val === undefined || val === null || val === "") {
+                return fallback !== undefined ? fallback : null;
+            }
+            return val;
         };
 
         const web_token = defaultValue(
@@ -21,10 +31,31 @@ export async function POST(req: NextRequest) {
         );
 
         // Extract project name from site_url
+        // const siteUrl = incoming.site_url || "";
+        // const projectName = siteUrl
+        //     ? siteUrl.replace(/^https?:\/\//, "").replace(".com", "")
+        //     : "default_project";
+
+        // Extract project name from site_url
         const siteUrl = incoming.site_url || "";
-        const projectName = siteUrl
-            ? siteUrl.replace(/^https?:\/\//, "").replace(".com", "")
-            : "default_project";
+        let projectName = "default_project";
+
+        if (siteUrl) {
+            try {
+                const { hostname } = new URL(siteUrl);
+                const parts = hostname.split(".");
+
+                if (parts.length > 2) {
+                    // Has subdomain → take only the first part
+                    projectName = parts[0];
+                } else {
+                    // No subdomain → take the domain name without TLD
+                    projectName = parts[0];
+                }
+            } catch (e) {
+                console.error("Invalid siteUrl:", siteUrl, e);
+            }
+        }
 
         // Store inside projectName/payment folder
         const BLOB_PATH = `${projectName}/payment/${web_token}.json`;
