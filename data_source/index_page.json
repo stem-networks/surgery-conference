@@ -62,7 +62,7 @@
             "content": "The Diabetes Global Conference will bring the latest diabetes research, care, and technology. Download the brochure to learn the most important sessions, expert speakers, and networking opportunities that will shape the future of diabetes care.",
             "page": "index",
             "status": "1",
-            "cid": "14"
+            "cid": "10045"
         }
     },
     "sessions": [
@@ -119,12 +119,12 @@
     ],
     "important_dates": [
         {
-            "text": "Abstract Submission Deadline",
-            "date": "14<sub>th</sub> <span>March <br> 2025</span>"
+            "text": "First Round of Abstract Submission Deadline",
+            "date": "22<sub>nd</sub> <span>September <br> 2025</span>"
         },
         {
-            "text": "Discounted Registration Fee",
-            "date": "30<sub>th</sub> <span>April <br> 2025</span>"
+            "text": "Early Bird Registration Deadline",
+            "date": "22<sub>nd</sub> <span>September <br> 2025</span>"
         }
     ],
     "venue_images": {
