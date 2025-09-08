@@ -9,7 +9,7 @@
             "created_dt": "2024-07-15 15:05:58",
             "updated_dt": "2024-05-10 12:45:31",
             "status": "1",
-            "cid": "10045"
+            "cid": "10042"
         }
     ],
     "checkdates_text": {
@@ -28,16 +28,16 @@
     },
     "checkdates": {
         "1": [
-            "05-05-2026",
-            "06-05-2026",
-            "07-05-2026",
-            "08-05-2026"
+            "21-09-2026",
+            "22-09-2026",
+            "23-09-2026",
+            "24-09-2026"
         ],
         "2": [
-            "07-05-2026",
-            "08-05-2026",
-            "09-05-2026",
-            "10-05-2026"
+            "23-09-2026",
+            "24-09-2026",
+            "25-09-2026",
+            "26-09-2026"
         ]
     },
     "conference_date": "March 17-19, 2025",
@@ -90,15 +90,15 @@
     },
     "increment_price": {
         "Presenter (In-Person)": {
-            "Standard Registration Fee": "$1499",
-            "total": "749",
+            "Standard Registration Fee": "$1399",
+            "total": "699",
             "min": "50",
             "conference_dt": "2025-09-21"
         },
         "Listener (In-Person)": {
-            "Standard Registration Fee": "$1299",
-            "total": "909",
-            "min": "30",
+            "Standard Registration Fee": "$1499",
+            "total": "749",
+            "min": "50",
             "conference_dt": "2025-09-21"
         },
         "Presenter (Virtual)": {
